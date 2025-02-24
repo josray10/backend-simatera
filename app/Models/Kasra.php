@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Kasra extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $table = 'kasra';
+    protected $primaryKey = 'nim';
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = [
         'nim',
@@ -23,22 +26,18 @@ class Kasra extends Model
         'asal',
         'status',
         'golongan_ukt',
-        'jenis_kelamin',
-        'password',
-        'created_by'
+        'user_id'
     ];
 
-    protected $hidden = [
-        'password',
-    ];
-
-    protected $casts = [
-        'tanggal_lahir' => 'date',
-    ];
-
-    // Relationship dengan user yang membuat data
-    public function creator()
+    // Relasi ke user
+    public function user()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class);
+    }
+
+    // Relasi ke gedung yang dikelola
+    public function gedungDikelola()
+    {
+        return $this->hasOne(Kamar::class, 'gedung', 'gedung');
     }
 }

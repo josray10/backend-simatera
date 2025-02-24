@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Mahasiswa extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $table = 'mahasiswa';
-    protected $primaryKey = 'nim';        // Set primary key ke nim
-    public $incrementing = false;         // Disable auto-increment
-    protected $keyType = 'string';        // Set type ke string
+    protected $primaryKey = 'nim';
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = [
         'nim',
@@ -27,39 +27,36 @@ class Mahasiswa extends Model
         'status',
         'golongan_ukt',
         'jenis_kelamin',
-        'password',
-        'created_by'
+        'user_id'
     ];
 
-    protected $hidden = [
-        'password'
-    ];
-
-    protected $casts = [
-        'tanggal_lahir' => 'date'
-    ];
-
-    /**
-     * Get the user that created the mahasiswa
-     */
-    public function creator()
+    // Relasi ke user
+    public function user()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get pengaduan for the mahasiswa
-     */
-    public function pengaduan()
+    // Relasi ke kamar
+    public function kamar()
     {
-        return $this->hasMany(Pengaduan::class, 'nim', 'nim');
+        return $this->belongsTo(Kamar::class, ['gedung', 'no_kamar'], ['gedung', 'no_kamar']);
     }
 
-    /**
-     * Get pembayaran for the mahasiswa
-     */
+    // Relasi ke pelanggaran
+    public function pelanggaran()
+    {
+        return $this->hasMany(Pelanggaran::class, 'nim', 'nim');
+    }
+
+    // Relasi ke pembayaran
     public function pembayaran()
     {
         return $this->hasMany(Pembayaran::class, 'nim', 'nim');
+    }
+
+    // Relasi ke pengaduan
+    public function pengaduan()
+    {
+        return $this->hasMany(Pengaduan::class, 'nim', 'nim');
     }
 }

@@ -2,55 +2,32 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Kamar extends Model
 {
-    use HasFactory;
-
-    protected $table = 'kamar';
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'no_kamar',
         'gedung',
-        'nomor_kamar',
         'lantai',
-        'status_kamar',
-        'kapasitas_kamar',
+        'status',
+        'kapasitas',
         'terisi'
     ];
 
-    /**
-     * Get mahasiswa yang menempati kamar
-     */
+    // Relasi ke mahasiswa yang menempati
     public function mahasiswa()
     {
-        return $this->hasMany(Mahasiswa::class, 'no_kamar', 'nomor_kamar')
-                    ->where('gedung', $this->gedung);
+        return $this->hasMany(Mahasiswa::class, ['gedung', 'no_kamar'], ['gedung', 'no_kamar']);
     }
 
-    /**
-     * Get kasra yang menempati kamar
-     */
+    // Relasi ke kasra yang mengelola
     public function kasra()
     {
-        return $this->hasMany(Kasra::class, 'no_kamar', 'nomor_kamar')
-                    ->where('gedung', $this->gedung);
-    }
-
-    /**
-     * Check if room is full
-     */
-    public function isFull()
-    {
-        return $this->terisi >= $this->kapasitas_kamar;
-    }
-
-    /**
-     * Get available space
-     */
-    public function getAvailableSpace()
-    {
-        return $this->kapasitas_kamar - $this->terisi;
+        return $this->belongsTo(Kasra::class, 'gedung', 'gedung');
     }
 }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('file_kegiatan')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
+            $table->foreignId('updated_by')->nullable()->constrained('users'); 
             $table->softDeletes();
         });
     }

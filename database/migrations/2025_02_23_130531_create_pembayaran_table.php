@@ -11,13 +11,15 @@ return new class extends Migration
         Schema::create('pembayaran', function (Blueprint $table) {
             $table->id();
             $table->string('nim');
-            $table->foreign('nim')->references('nim')->on('mahasiswa');
-            $table->enum('status_pembayaran', ['belum lunas', 'lunas'])->default('belum lunas');
+            $table->foreign('nim')->references('nim')->on('mahasiswa')->onDelete('cascade');
+            $table->enum('status_pembayaran', ['belum_lunas', 'lunas'])->default('belum_lunas');
             $table->string('periode');
             $table->decimal('nominal', 10, 2);
             $table->enum('metode_pembayaran', ['transfer', 'tunai']);
             $table->date('tanggal_pembayaran');
+            $table->string('bukti_pembayaran')->nullable(); // Tambahkan kolom bukti pembayaran
             $table->text('catatan')->nullable();
+            $table->foreignId('created_by')->constrained('users'); // Tambahkan created_by
             $table->foreignId('verified_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes();

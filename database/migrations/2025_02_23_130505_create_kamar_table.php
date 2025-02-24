@@ -16,11 +16,17 @@ return new class extends Migration
             $table->enum('status', ['tersedia', 'tidak_tersedia', 'terisi', 'perbaikan'])->default('tersedia');
             $table->integer('kapasitas');
             $table->integer('terisi')->default(0);
+            $table->text('keterangan')->nullable(); // Tambahan untuk mencatat informasi tambahan
+            $table->foreignId('created_by')->constrained('users'); // Tambahan untuk audit trail
+            $table->foreignId('updated_by')->nullable()->constrained('users'); // Tambahan untuk audit trail
             $table->timestamps();
             $table->softDeletes();
 
             // Unique constraint
             $table->unique(['gedung', 'no_kamar']);
+            
+            // Tambahan validasi
+            $table->check('terisi <= kapasitas'); // Memastikan jumlah terisi tidak melebihi kapasitas
         });
     }
 

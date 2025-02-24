@@ -13,8 +13,8 @@ return new class extends Migration
             $table->string('nama');
             $table->string('email')->unique();
             $table->string('prodi');
-            $table->enum('gedung', ['tb1', 'tb2', 'tb3', 'tb4', 'tb5']);
-            $table->string('no_kamar');
+            // Hapus kolom gedung dan no_kamar, ganti dengan foreign key ke table kamar
+            $table->foreignId('kamar_id')->constrained('kamar');
             $table->date('tanggal_lahir');
             $table->string('tempat_lahir');
             $table->string('asal');
@@ -26,8 +26,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             
-            // Unique constraints
-            $table->unique(['gedung', 'no_kamar']);
+            // Hapus unique constraint untuk gedung dan no_kamar karena sudah menggunakan kamar_id
         });
     }
 

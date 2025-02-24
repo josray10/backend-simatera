@@ -3,170 +3,111 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pelanggaran;
-use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class PelanggaranController extends Controller
 {
-    /**
-     * Display a listing of pelanggaran.
-     */
-    public function index(Request $request)
+    public function index()
     {
         try {
-            $query = Pelanggaran::with(['mahasiswa', 'creator']);
-
-            // Filter berdasarkan NIM
-            if ($request->has('nim')) {
-                $query->where('nim', $request->nim);
-            }
-
-            // Filter berdasarkan tanggal
-            if ($request->has('tanggal')) {
-                $query->whereDate('tanggal_pelanggaran', $request->tanggal);
-            }
-
-            // Filter berdasarkan date range
-            if ($request->has('start_date') && $request->has('end_date')) {
-                $query->whereBetween('tanggal_pelanggaran', [$request->start_date, $request->end_date]);
-            }
-
-            $pelanggaran = $query->latest()->get();
+            $pelanggaran = Pelanggaran::with(['mahasiswa', 'creator', 'approver'])
+                ->latest()
+                ->paginate(10);
 
             return response()->json([
-                'status' => true,
-                'message' => 'Data pelanggaran berhasil diambil',
+                'status' => 'success',
                 'data' => $pelanggaran
-            ], 200);
-        } catch (\Exception $e) {
+            ]);
+        } catch (Exception $e) {
             return response()->json([
-                'status' => false,
-                'message' => 'Gagal mengambil data pelanggaran',
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengambil data pelanggaran',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Store a newly created pelanggaran.
-     */
     public function store(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
+            $request->validate([
                 'nim' => 'required|exists:mahasiswa,nim',
                 'tanggal_pelanggaran' => 'required|date',
                 'keterangan_pelanggaran' => 'required|string'
             ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Validasi error',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            // Verify mahasiswa exists
-            $mahasiswa = Mahasiswa::where('nim', $request->nim)->first();
-            if (!$mahasiswa) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Mahasiswa tidak ditemukan'
-                ], 404);
-            }
-
             $pelanggaran = Pelanggaran::create([
                 'nim' => $request->nim,
                 'tanggal_pelanggaran' => $request->tanggal_pelanggaran,
                 'keterangan_pelanggaran' => $request->keterangan_pelanggaran,
+                'status' => 'pending',
                 'created_by' => Auth::id()
             ]);
 
-            $pelanggaran->load(['mahasiswa', 'creator']);
-
             return response()->json([
-                'status' => true,
-                'message' => 'Data pelanggaran berhasil ditambahkan',
+                'status' => 'success',
+                'message' => 'Pelanggaran berhasil ditambahkan',
                 'data' => $pelanggaran
             ], 201);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
-                'status' => false,
-                'message' => 'Gagal menambahkan data pelanggaran',
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menambahkan pelanggaran',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Display the specified pelanggaran.
-     */
     public function show($id)
     {
         try {
-            $pelanggaran = Pelanggaran::with(['mahasiswa', 'creator'])->findOrFail($id);
+            $pelanggaran = Pelanggaran::with(['mahasiswa', 'creator', 'approver'])
+                ->findOrFail($id);
 
             return response()->json([
-                'status' => true,
+                'status' => 'success',
                 'data' => $pelanggaran
-            ], 200);
-        } catch (\Exception $e) {
+            ]);
+        } catch (Exception $e) {
             return response()->json([
-                'status' => false,
-                'message' => 'Data pelanggaran tidak ditemukan',
+                'status' => 'error',
+                'message' => 'Pelanggaran tidak ditemukan',
                 'error' => $e->getMessage()
             ], 404);
         }
     }
 
-    /**
-     * Update the specified pelanggaran.
-     */
     public function update(Request $request, $id)
     {
         try {
             $pelanggaran = Pelanggaran::findOrFail($id);
 
-            $validator = Validator::make($request->all(), [
-                'tanggal_pelanggaran' => 'required|date',
-                'keterangan_pelanggaran' => 'required|string'
+            $request->validate([
+                'tanggal_pelanggaran' => 'sometimes|required|date',
+                'keterangan_pelanggaran' => 'sometimes|required|string'
             ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Validasi error',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
 
             $pelanggaran->update($request->only([
                 'tanggal_pelanggaran',
                 'keterangan_pelanggaran'
             ]));
 
-            $pelanggaran->load(['mahasiswa', 'creator']);
-
             return response()->json([
-                'status' => true,
-                'message' => 'Data pelanggaran berhasil diupdate',
+                'status' => 'success',
+                'message' => 'Pelanggaran berhasil diperbarui',
                 'data' => $pelanggaran
-            ], 200);
-        } catch (\Exception $e) {
+            ]);
+        } catch (Exception $e) {
             return response()->json([
-                'status' => false,
-                'message' => 'Gagal mengupdate data pelanggaran',
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat memperbarui pelanggaran',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Remove the specified pelanggaran.
-     */
     public function destroy($id)
     {
         try {
@@ -174,37 +115,77 @@ class PelanggaranController extends Controller
             $pelanggaran->delete();
 
             return response()->json([
-                'status' => true,
-                'message' => 'Data pelanggaran berhasil dihapus'
-            ], 200);
-        } catch (\Exception $e) {
+                'status' => 'success',
+                'message' => 'Pelanggaran berhasil dihapus'
+            ]);
+        } catch (Exception $e) {
             return response()->json([
-                'status' => false,
-                'message' => 'Gagal menghapus data pelanggaran',
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menghapus pelanggaran',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
-    /**
-     * Get pelanggaran by mahasiswa NIM
-     */
-    public function getByNim($nim)
+    public function approve($id)
     {
         try {
-            $pelanggaran = Pelanggaran::with(['mahasiswa', 'creator'])
-                ->where('nim', $nim)
-                ->latest()
-                ->get();
+            $pelanggaran = Pelanggaran::findOrFail($id);
+
+            if ($pelanggaran->status !== 'pending') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Pelanggaran sudah diproses sebelumnya'
+                ], 400);
+            }
+
+            $pelanggaran->update([
+                'status' => 'approved',
+                'approved_by' => Auth::id(),
+                'approved_at' => now()
+            ]);
 
             return response()->json([
-                'status' => true,
+                'status' => 'success',
+                'message' => 'Pelanggaran berhasil disetujui',
                 'data' => $pelanggaran
-            ], 200);
-        } catch (\Exception $e) {
+            ]);
+        } catch (Exception $e) {
             return response()->json([
-                'status' => false,
-                'message' => 'Gagal mengambil data pelanggaran',
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menyetujui pelanggaran',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function reject($id)
+    {
+        try {
+            $pelanggaran = Pelanggaran::findOrFail($id);
+
+            if ($pelanggaran->status !== 'pending') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Pelanggaran sudah diproses sebelumnya'
+                ], 400);
+            }
+
+            $pelanggaran->update([
+                'status' => 'rejected',
+                'approved_by' => Auth::id(),
+                'approved_at' => now()
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pelanggaran berhasil ditolak',
+                'data' => $pelanggaran
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menolak pelanggaran',
                 'error' => $e->getMessage()
             ], 500);
         }

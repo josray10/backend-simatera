@@ -16,6 +16,8 @@ return new class extends Migration
             $table->date('tanggal');
             $table->enum('status', ['belum_dikerjakan', 'sedang_dikerjakan', 'selesai'])->default('belum_dikerjakan');
             $table->string('gambar')->nullable();
+            $table->foreignId('kamar_id')->constrained('kamar'); // Tambahkan referensi ke kamar
+            $table->foreignId('created_by')->constrained('users'); // Tambahkan created_by
             $table->timestamps();
             $table->softDeletes();
             

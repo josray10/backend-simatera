@@ -2,25 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'nama',
-        'email',
         'username',
+        'email',
         'password',
-        'role',
-        'foto_profile',
-        'is_active',
-        'last_login'
+        'role'
     ];
 
     protected $hidden = [
@@ -28,41 +23,43 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'is_active' => 'boolean',
-        'last_login' => 'datetime'
-    ];
-
-    // Relationships
+    // Relasi one-to-one dengan mahasiswa
     public function mahasiswa()
     {
-        return $this->hasOne(Mahasiswa::class, 'user_id');
+        return $this->hasOne(Mahasiswa::class);
     }
 
+    // Relasi one-to-one dengan kasra
+    public function kasra()
+    {
+        return $this->hasOne(Kasra::class);
+    }
+
+    // Relasi untuk pengumuman yang dibuat
     public function pengumuman()
     {
         return $this->hasMany(Pengumuman::class, 'created_by');
     }
 
+    // Relasi untuk jadwal kegiatan yang dibuat
     public function jadwalKegiatan()
     {
         return $this->hasMany(JadwalKegiatan::class, 'created_by');
     }
 
-    // Scopes
-    public function scopeActive($query)
+    // Relasi untuk pelanggaran yang dibuat
+    public function pelanggaranDibuat()
     {
-        return $query->where('is_active', true);
+        return $this->hasMany(Pelanggaran::class, 'created_by');
     }
 
-    public function scopeByRole($query, $role)
+    // Relasi untuk pelanggaran yang disetujui
+    public function pelanggaranDisetujui()
     {
-        return $query->where('role', $role);
+        return $this->hasMany(Pelanggaran::class, 'approved_by');
     }
 
-    // Methods
+    // Helper methods untuk cek role
     public function isAdmin()
     {
         return $this->role === 'admin';
@@ -76,11 +73,5 @@ class User extends Authenticatable
     public function isMahasiswa()
     {
         return $this->role === 'mahasiswa';
-    }
-
-    public function updateLastLogin()
-    {
-        $this->last_login = now();
-        $this->save();
     }
 }
