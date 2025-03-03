@@ -17,17 +17,22 @@ class Mahasiswa extends Model
     protected $fillable = [
         'nim',
         'nama',
-        'prodi',
-        'gedung',
-        'no_kamar',
         'email',
+        'prodi',
+        'kamar_id',
         'tanggal_lahir',
         'tempat_lahir',
         'asal',
-        'status',
+        'jenis_kelamin',  // Sesuai dengan kolom di migrasi, bukan 'gender'
         'golongan_ukt',
-        'jenis_kelamin',
-        'user_id'
+        'status',
+        'user_id',
+        'password',      // Tambahkan jika memang dibutuhkan
+        'created_by'     // Tambahkan karena ada di migrasi
+    ];
+
+    protected $hidden = [
+        'password',
     ];
 
     // Relasi ke user
@@ -36,10 +41,16 @@ class Mahasiswa extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Relasi ke kamar
+    // Relasi ke kamar (perbaikan relasi menggunakan kamar_id)
     public function kamar()
     {
-        return $this->belongsTo(Kamar::class, ['gedung', 'no_kamar'], ['gedung', 'no_kamar']);
+        return $this->belongsTo(Kamar::class, 'kamar_id');
+    }
+
+    // Relasi ke user yang membuat data
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     // Relasi ke pelanggaran
@@ -58,5 +69,17 @@ class Mahasiswa extends Model
     public function pengaduan()
     {
         return $this->hasMany(Pengaduan::class, 'nim', 'nim');
+    }
+    
+    // Helper method untuk mendapatkan gedung
+    public function getGedungAttribute()
+    {
+        return $this->kamar ? $this->kamar->gedung : null;
+    }
+    
+    // Helper method untuk mendapatkan no_kamar
+    public function getNoKamarAttribute()
+    {
+        return $this->kamar ? $this->kamar->no_kamar : null;
     }
 }

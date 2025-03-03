@@ -12,15 +12,22 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'nama',          // Tambahkan kolom nama
         'username',
         'email',
         'password',
-        'role'
+        'role',
+        'is_active'      // Tambahkan kolom is_active
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'email_verified_at' => 'datetime',
     ];
 
     // Relasi one-to-one dengan mahasiswa

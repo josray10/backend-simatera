@@ -151,7 +151,7 @@ class PelanggaranController extends Controller
                 'data' => $pelanggaran
             ]);
         } catch (Exception $e) {
-            return response()->json([
+            return response()->json([   
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat menyetujui pelanggaran',
                 'error' => $e->getMessage()

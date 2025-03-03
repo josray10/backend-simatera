@@ -10,10 +10,12 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('nama');  // Tambahkan kolom nama
             $table->string('username')->unique();
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('role', ['admin', 'kasra', 'mahasiswa']);
+            $table->boolean('is_active')->default(true);  // Tambahkan kolom is_active
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

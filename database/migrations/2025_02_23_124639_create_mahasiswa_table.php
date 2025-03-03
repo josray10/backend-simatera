@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('mahasiswa');
         Schema::create('mahasiswa', function (Blueprint $table) {
             $table->string('nim')->primary();
             $table->string('nama');
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan']);
             $table->enum('golongan_ukt', ['1', '2', '3', '4', '5', '6', '7', '8']);
             $table->enum('status', ['Aktif Tinggal', 'Tidak Aktif'])->default('Aktif Tinggal');
+            $table->string('password')->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
